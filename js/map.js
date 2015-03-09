@@ -1,4 +1,35 @@
 ﻿var Map = {};
+var mark;		// 地図上のマーカー
+
+Map.getCurrentPos = function(){
+	var dfd = $.Deferred();
+	
+	// gpsに対応しているかどうか
+	if(!navigator.geolocation){
+		alert("GPSに対応していません");
+		// グランフロントの座標値を返す
+		dfd.resolve(new google.maps.LatLng(34.705895, 135.494474));
+	}
+	
+	// gps取得開始
+	navigator.geolocation.getCurrentPosition(function(pos) {
+		// gps取得成功
+		dfd.resolve(new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
+	}, function(){
+		// gps取得失敗（グランフロントの座標値）		
+		dfd.resolve(new google.maps.LatLng(34.705895, 135.494474));
+	});
+	
+	return dfd.promise();
+};
+
+Map.updateMarker = function(){
+	Map.getCurrentPos().then(function(cur_pos){
+		mark.setPosition(cur_pos);
+		console.log("現在地更新：" + cur_pos);
+		setTimeout("Map.updateMarker()", 5000);
+	});
+};
 
 Map.createMap = function(id, lat, lng, zoom) {
     var mapOptions = {
@@ -27,6 +58,7 @@ Map.createMarker = function(map, title, lat, lng, draggable) {
 	title : title,
 	draggable: draggable
     });
+	mark = marker;
     return marker;
 };
 
